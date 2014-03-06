@@ -34,7 +34,7 @@ public class GPIOComponent implements ResourceComponent<LinuxPlatformComponent>,
         OperationResult operationResult = new OperationResult();
         File file = new File("/sys/class/gpio/gpio"+pinNumber);
         if (!file.exists()) {
-            operationResult.setErrorMessage("Pin " + pinNumber + " not provisionied");
+            operationResult.setErrorMessage("Pin " + pinNumber + " not provisioned");
         }
         file = new File(file,"value");
         if (!file.canWrite()) {
@@ -56,16 +56,21 @@ public class GPIOComponent implements ResourceComponent<LinuxPlatformComponent>,
         } else if (op.equals("blink")) {
             String tmp = configuration.getSimpleValue("delay","1000");
             int delay = Integer.valueOf(tmp);
-            tmp = configuration.getSimpleValue("duration","1");
-            int duration = Integer.valueOf(tmp) * delay;
+            tmp = configuration.getSimpleValue("times","1");
+            int times = Integer.valueOf(tmp) ;
             fw.write("0");
             fw.flush();
-            fw.write("1");
-            fw.flush();
-            Thread.sleep(duration);
-            fw.write("0");
-            fw.flush();
+
+            for (int i = 0 ; i < times ; i++ ) {
+                fw.write("1");
+                fw.flush();
+                Thread.sleep(delay);
+                fw.write("0");
+                fw.flush();
+                Thread.sleep(delay);
+            }
             fw.close();
+
         } else {
             log.warn("Operation " + op + " not yet supported");
             operationResult.setErrorMessage("Operation not yet supported");

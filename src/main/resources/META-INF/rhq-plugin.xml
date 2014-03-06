@@ -10,7 +10,7 @@
     >
 
 
-  <service name="OneWire"
+  <service name="OneWireComponent"
            discovery="OneWireDiscovery"
            class="OneWireComponent"
       >
@@ -23,7 +23,7 @@
             displayType="summary"/>
   </service>
 
-  <service name="GPIO" description="A GPIO pin"
+  <service name="GPIOPin" description="A GPIO pin"
            discovery="GPIODiscovery" class="GPIOComponent"
            supportsManualAdd="true"
            >
@@ -33,13 +33,24 @@
                          description="The pin to operate"/>
     </plugin-configuration>
 
-    <operation name="on" />
-    <operation name="off" />
+    <operation name="on" displayName="Switch on">
+      <results>
+        <c:simple-property name="operationResult"/>
+      </results>
+    </operation>
+    <operation name="off" displayName="Switch off">
+      <results>
+        <c:simple-property name="operationResult"/>
+      </results>
+    </operation>
     <operation name="blink">
       <parameters>
-        <c:simple-property name="times" type="integer"/>
-        <c:simple-property name="delay" type="integer"/>
+        <c:simple-property name="times" type="integer" units="none" description="How often to blink"/>
+        <c:simple-property name="delay" type="integer" units="milliseconds" description="Duration of on/off phases"/>
       </parameters>
+      <results>
+        <c:simple-property name="operationResult"/>
+      </results>
     </operation>
 
    </service>

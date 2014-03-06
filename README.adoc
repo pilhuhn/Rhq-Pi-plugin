@@ -1,0 +1,37 @@
+= RHQ-Pi-plugin
+
+This plugin is to support some of the Raspberry PI (TM) hardware features.
+
+== One Wire Bus
+
+The plugin recognizes temperature sensors on the 1-wire-bus.
+
+To get the Pi to recognize them you have to run
+
+[source,shell]
+----
+# modprobe 1-gpio pullup=1
+# modprobe w1-therm
+----
+
+and perhaps (to make this survive reboots) also add
+
+[source,shell]
+----
+1-gpio pullup=1
+w1-therm
+----
+
+to `/etc/modules`
+
+== GPIO Pins
+
+For now only output pins are supported and you need to enable them manually as root.
+(at the example of pin 27):
+
+[source,shell]
+----
+# cd /sys/class/gpio
+# echo 27 > export
+# echo out > direction
+----
