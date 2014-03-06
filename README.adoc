@@ -10,7 +10,7 @@ To get the Pi to recognize them you have to run
 
 [source,shell]
 ----
-# modprobe 1-gpio pullup=1
+# modprobe w1-gpio pullup=1
 # modprobe w1-therm
 ----
 
@@ -18,7 +18,7 @@ and perhaps (to make this survive reboots) also add
 
 [source,shell]
 ----
-1-gpio pullup=1
+w1-gpio pullup=1
 w1-therm
 ----
 
