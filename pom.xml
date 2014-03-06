@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>Pi-plugin</groupId>
+  <artifactId>Pi-plugin</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <!-- This project has the custom plugin packaging -->
+  <packaging>rhq-agent-plugin</packaging>
+
+  <properties>
+    <rhq.version>4.9.0</rhq.version>
+    <rhq-agent-plugin-plugin.version>0.5</rhq-agent-plugin-plugin.version>
+  </properties>
+
+  <build>
+      <!-- To define the plugin version in your parent POM -->
+      <pluginManagement>
+        <plugins>
+          <plugin>
+            <groupId>org.rhq.maven.plugins</groupId>
+            <artifactId>rhq-agent-plugin-plugin</artifactId>
+            <version>${rhq-agent-plugin-plugin.version}</version>
+          </plugin>
+        </plugins>
+      </pluginManagement>
+
+      <!-- To use the plugin goals in your POM or parent POM -->
+      <plugins>
+
+        <plugin>
+          <groupId>org.rhq.maven.plugins</groupId>
+          <artifactId>rhq-agent-plugin-plugin</artifactId>
+          <version>${rhq-agent-plugin-plugin.version}</version>
+          <extensions>true</extensions>
+          <configuration>
+            <deployDirectory>/im/run-rhq/dev-container/rhq-server/plugins/</deployDirectory>
+            <!-- Here comes the project manifest customization  -->
+                       <archive>
+                           <manifest>
+                               <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                           </manifest>
+                           <manifestEntries>
+                               <Maven-Version>${maven.version}</Maven-Version>
+                               <Java-Version>${java.version}</Java-Version>
+                               <Java-Vendor>${java.vendor}</Java-Vendor>
+                               <Os-Name>${os.name}</Os-Name>
+                               <Os-Arch>${os.arch}</Os-Arch>
+                               <Os-Version>${os.version}</Os-Version>
+                           </manifestEntries>
+                       </archive>
+          </configuration>
+          <executions>
+            <execution>
+              <id>deploy-to-dev-container</id>
+              <goals>
+                <goal>deploy</goal>
+              </goals>
+              <phase>package</phase>
+            </execution>
+            <execution>
+              <id>validate-the-plugin</id>
+              <goals>
+                <goal>validate</goal>
+              </goals>
+              <phase>package</phase>
+              <configuration>
+                <rhqVersion>${rhq.version}</rhqVersion>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+
+      </plugins>
+    </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.rhq</groupId>
+      <artifactId>rhq-core-plugin-api</artifactId>
+      <version>${rhq.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.rhq</groupId>
+      <artifactId>rhq-core-domain</artifactId>
+      <version>${rhq.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging-api</artifactId>
+      <version>1.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.rhq</groupId>
+      <artifactId>rhq-platform-plugin</artifactId>
+      <version>${rhq.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <repositories>
+    <repository>
+      <id>Sonatype OSS</id>
+      <snapshots/>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </repositories>
+</project>

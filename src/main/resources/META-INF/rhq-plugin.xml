@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<plugin name="rhq-pi-plugin"
+        displayName="rhq-pi-pluginPlugin"
+        description="Support for the Pi"
+        package="org.rhq.plugins.pi.Pi"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration"
+        version="0.1"
+    >
+
+
+  <service name="OneWire"
+           discovery="OneWireDiscovery"
+           class="OneWireComponent"
+      >
+    <runs-inside>
+      <parent-resource-type name="Linux" plugin="Platforms"/>
+    </runs-inside>
+
+    <metric property="temp" dataType="measurement" measurementType="dynamic"
+            description="Temperature in °C" defaultInterval="60000" defaultOn="true"
+            displayType="summary"/>
+  </service>
+
+  <service name="GPIO" description="A GPIO pin"
+           discovery="GPIODiscovery" class="GPIOComponent"
+           supportsManualAdd="true"
+           >
+
+    <plugin-configuration>
+      <c:simple-property name="pin" type="integer" readOnly="true" required="true"
+                         description="The pin to operate"/>
+    </plugin-configuration>
+
+    <operation name="on" />
+    <operation name="off" />
+    <operation name="blink">
+      <parameters>
+        <c:simple-property name="times" type="integer"/>
+        <c:simple-property name="delay" type="integer"/>
+      </parameters>
+    </operation>
+
+   </service>
+</plugin>
