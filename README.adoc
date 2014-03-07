@@ -26,8 +26,9 @@ to `/etc/modules`
 
 == GPIO Pins
 
-For now only output pins are supported.
-(at the example of pin 27):
+For now only output pins are supported. The plugin sets them up on component
+start and un-exports at component stop. The following is an example o what 
+happens internally (at the example of pin 27):
 
 [source,shell]
 ----
