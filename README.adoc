@@ -26,12 +26,13 @@ to `/etc/modules`
 
 == GPIO Pins
 
-For now only output pins are supported and you need to enable them manually as root.
+For now only output pins are supported.
 (at the example of pin 27):
 
 [source,shell]
 ----
 # cd /sys/class/gpio
 # echo 27 > export
+# cd gpio27
 # echo out > direction
 ----

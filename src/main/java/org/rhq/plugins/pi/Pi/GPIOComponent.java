@@ -2,12 +2,13 @@ package org.rhq.plugins.pi.Pi;
 
 import java.io.File;
 import java.io.FileWriter;
-
+import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.rhq.core.domain.configuration.Configuration;
+import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.pluginapi.inventory.InvalidPluginConfigurationException;
 import org.rhq.core.pluginapi.inventory.ResourceComponent;
@@ -22,8 +23,7 @@ import org.rhq.plugins.platform.LinuxPlatformComponent;
  */
 public class GPIOComponent implements ResourceComponent<LinuxPlatformComponent>, OperationFacet {
 
-    private ResourceContext<LinuxPlatformComponent> context;
-    private Configuration pluginConfig;
+    private static final String GPIO_BASE = "/sys/class/gpio";
     private Integer pinNumber;
     private Log log = LogFactory.getLog(GPIOComponent.class);
 
@@ -32,7 +32,7 @@ public class GPIOComponent implements ResourceComponent<LinuxPlatformComponent>,
                                            Configuration configuration) throws InterruptedException, Exception {
 
         OperationResult operationResult = new OperationResult();
-        File file = new File("/sys/class/gpio/gpio"+pinNumber);
+        File file = new File(GPIO_BASE + "/gpio" +pinNumber);
         if (!file.exists()) {
             operationResult.setErrorMessage("Pin " + pinNumber + " not provisioned");
         }
@@ -85,21 +85,92 @@ public class GPIOComponent implements ResourceComponent<LinuxPlatformComponent>,
     @Override
     public void start(
         ResourceContext<LinuxPlatformComponent> context) throws InvalidPluginConfigurationException, Exception {
-        this.context = context;
-        this.pluginConfig = context.getPluginConfiguration();
-        this.pinNumber = Integer.valueOf(pluginConfig.getSimpleValue("pin"));
+        Configuration pluginConfig = context.getPluginConfiguration();
+        String value = pluginConfig.getSimpleValue("pin");
+        if (value==null || value.isEmpty()) {
+            throw new InvalidPluginConfigurationException("No pin provided, can not start");
+        }
+        this.pinNumber = Integer.valueOf(value);
 
+        // Check if the pin is already exported. If so, nothing to do.
+        File gpioPin = new File(GPIO_BASE + "/gpio" + pinNumber);
+        if (gpioPin.exists()) {
+            return;
+        }
+        setuPinForOutput();
+        Configuration blinking = new Configuration();
+        blinking.put(new PropertySimple("times",5));
+        blinking.put(new PropertySimple("delay", 250));
+        invokeOperation("blink",blinking);
 
-        // Check if our pin is already enabled
+    }
 
+    private void setuPinForOutput() throws IOException, InterruptedException {
+        // Set up the pin for output
+        File export = new File(GPIO_BASE + "/export");
+        if (!export.canWrite()) {
+            throw new InvalidPluginConfigurationException("Can not export pin " + pinNumber);
+        }
+        FileWriter fw = new FileWriter(export);
+        try {
+            fw.write(""+pinNumber);
+            fw.flush();
+        } catch (IOException e) {
+            throw e;
+        } finally {
+            fw.close();
+        }
+
+        Thread.sleep(100);
+
+        File direction = new File(GPIO_BASE + "/gpio" + pinNumber + "/direction");
+        if (!direction.exists()) {
+            throw new InvalidPluginConfigurationException("Pin " + pinNumber + " was not exported");
+        }
+
+        fw = new FileWriter(direction);
+        try {
+            fw.write("out");
+            fw.flush();
+        } catch (IOException e) {
+            throw e;
+        } finally {
+            fw.close();
+        }
     }
 
     @Override
     public void stop() {
+
+        File unexport = new File(GPIO_BASE + "/unexport");
+        if (!unexport.canWrite()) {
+            throw new InvalidPluginConfigurationException("Can not unexport pin " + pinNumber);
+        }
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(unexport);
+            fw.write(""+pinNumber);
+            fw.flush();
+        } catch (IOException e) {
+            log.error(e);
+        } finally {
+            if (fw != null) {
+                try {
+                    fw.close();
+                } catch (IOException e) {
+                    log.error(e);
+                }
+            }
+        }
     }
 
     @Override
     public AvailabilityType getAvailability() {
-        return AvailabilityType.UP; // TODO real impl
+        File gpioPin = new File(GPIO_BASE + "/gpio" + pinNumber);
+        if (gpioPin.exists()) {
+            return AvailabilityType.UP;
+        }
+        return AvailabilityType.DOWN;
+
     }
 }
